@@ -18,7 +18,7 @@ public class DropDownService {
     }
 
     public List<StationEntity> getDropDown(){
-        logger.info("DropdownService: getdropdown");
+        logger.info("DropdownService: dropdown");
         return stationRepository.findAll();
     }
 }
