@@ -1,20 +1,23 @@
 package com.exercise.gbtrain.service;
 
 import com.exercise.gbtrain.dto.farecalculator.request.FareCalculatorRequest;
+import com.exercise.gbtrain.dto.farecalculator.request.FareRateRequest;
 import com.exercise.gbtrain.dto.farecalculator.response.CalculatedFareResponse;
-import com.exercise.gbtrain.dto.farecalculator.response.FareRateDetailResponse;
 import com.exercise.gbtrain.dto.farecalculator.response.FareRateResponse;
 import com.exercise.gbtrain.entity.ColorMappingEntity;
 import com.exercise.gbtrain.entity.ComparatorEntity;
 import com.exercise.gbtrain.entity.FareRateEntity;
+import com.exercise.gbtrain.entity.TransactionEntity;
 import com.exercise.gbtrain.repository.ColorMappingRepository;
 import com.exercise.gbtrain.repository.ComparatorRepository;
 import com.exercise.gbtrain.repository.FareRateRepository;
 import com.exercise.gbtrain.repository.TransactionRepository;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,39 +40,60 @@ public class FareCalculatorService {
         return colorMappingRepository.findAll();
     }
 
-    public  List<FareRateResponse>getFareRates() {
-        List<FareRateEntity> fareRateEntityList =  fareRateRepository.findAllByTrainColorOrderByIdAsc("Green");
-        for(FareRateEntity fareRateEntity : fareRateEntityList){
-            logger.info(fareRateEntity.toString());
+    public List<FareRateResponse> getFareRates(FareRateRequest fareRateRequest) {
+        List<FareRateEntity> fareRateEntityList = fareRateRepository.findAllByTrainColorOrderByIdAsc(fareRateRequest.getTrainColor());
+        return wrapperFareRateResponse(fareRateEntityList);
+    }
+
+    private List<FareRateResponse> wrapperFareRateResponse(List<FareRateEntity> fareRateEntityList) {
+        List<FareRateResponse> responses = new ArrayList<>();
+        for (FareRateEntity fareRateEntity : fareRateEntityList) {
+            FareRateResponse response = new FareRateResponse();
+            response.setDistance(fareRateEntity.getDistance());
+            response.setPrice(fareRateEntity.getPrice());
+            response.setDescription(fareRateEntity.getDescription());
+            response.setUpdateDatetime(fareRateEntity.getUpdateDatetime());
         }
-
-        fareRateEntityList.clear();
-        return new ArrayList<>();
+        return responses;
     }
 
-    private FareRateResponse wrapperFareRateResponse(FareRateEntity fareRateEntity) {
-        return null;
-    }
-
+    @Transactional
     public CalculatedFareResponse calculateFare(FareCalculatorRequest fareCalculatorRequest) {
-        String source = fareCalculatorRequest.getSource();
-        String destination = fareCalculatorRequest.getDestination();
-        ComparatorEntity comparatorEntity =  comparatorRepository.findOneBySourceAndDestination(source, destination);
+        ComparatorEntity comparatorEntity = comparatorRepository.findOneBySourceAndDestination(
+                fareCalculatorRequest.getSource(),
+                fareCalculatorRequest.getDestination());
 
-        int price = 200;
-        if(comparatorEntity == null){
-            price = 0;
+        if (comparatorEntity == null) {
+            logger.error("Cant find Route path");
+            comparatorEntity = new ComparatorEntity();
         }
 
-        return wrapperCalculatedFareResponse(comparatorEntity, price);
+        FareRateEntity fareRateEntity = fareRateRepository.findOneByTrainColorAndDistance(
+                fareCalculatorRequest.getTrainColor(),
+                comparatorEntity.getDistance());
+
+        transactionRepository.saveAndFlush(wrapperTransactionEntity(fareCalculatorRequest, fareRateEntity));
+        return wrapperCalculatedFareResponse(comparatorEntity, fareRateEntity);
     }
 
-    private CalculatedFareResponse wrapperCalculatedFareResponse(ComparatorEntity comparatorEntity,int price) {
+    private TransactionEntity wrapperTransactionEntity(FareCalculatorRequest fareCalculatorRequest, FareRateEntity fareRateEntity) {
+        TransactionEntity entity = new TransactionEntity();
+        LocalDateTime now = LocalDateTime.now();
+        entity.setSource(fareCalculatorRequest.getSource());
+        entity.setDestination(fareCalculatorRequest.getDestination());
+        entity.setTrainColor(fareCalculatorRequest.getTrainColor());
+        entity.setPrice(fareRateEntity.getPrice());
+        entity.setType(fareCalculatorRequest.getType());
+        entity.setCreateDatetime(now);
+        return entity;
+    }
+
+    private CalculatedFareResponse wrapperCalculatedFareResponse(ComparatorEntity comparatorEntity, FareRateEntity fareRateEntity) {
         CalculatedFareResponse response = new CalculatedFareResponse();
         response.setSource(comparatorEntity.getSource());
         response.setDestination(comparatorEntity.getDestination());
         response.setDistance(comparatorEntity.getDistance());
-        response.setPrice(price);
+        response.setPrice(fareRateEntity.getPrice());
         return response;
     }
 }

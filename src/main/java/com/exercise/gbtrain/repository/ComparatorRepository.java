@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ComparatorRepository extends JpaRepository<ComparatorEntity, Integer> {
+
     ComparatorEntity findOneBySourceAndDestination(String source, String destination);
 }

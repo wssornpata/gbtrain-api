@@ -14,7 +14,7 @@ public class FareRateEntity {
     @Column(name = "farerate_id", nullable = false)
     private int id;
 
-    @Column(name = "farerate_distance", nullable = false)
+    @Column(name = "farerate_distance", nullable = false, unique = true)
     private int distance;
 
     @Column(name = "farerate_price", nullable = false)

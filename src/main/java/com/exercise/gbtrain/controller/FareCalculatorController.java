@@ -1,6 +1,7 @@
 package com.exercise.gbtrain.controller;
 
 import com.exercise.gbtrain.dto.farecalculator.request.FareCalculatorRequest;
+import com.exercise.gbtrain.dto.farecalculator.request.FareRateRequest;
 import com.exercise.gbtrain.service.FareCalculatorService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +26,8 @@ public class FareCalculatorController {
     }
 
     @GetMapping("/getfarerate")
-    public ResponseEntity<Object> getFareRate(){
-        var response = fareCalculatorService.getFareRates();
+    public ResponseEntity<Object> getFareRate(@RequestBody FareRateRequest fareRateRequest){
+        var response = fareCalculatorService.getFareRates(fareRateRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

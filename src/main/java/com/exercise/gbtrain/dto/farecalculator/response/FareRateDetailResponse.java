@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class FareRateDetailResponse {
-    private String color;
-    private String providerName;
+    private int rate_id;
+    private int distance;
+    private float price;
 }

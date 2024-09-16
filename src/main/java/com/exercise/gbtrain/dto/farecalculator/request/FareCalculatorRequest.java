@@ -4,7 +4,8 @@ import lombok.Data;
 
 @Data
 public class FareCalculatorRequest {
-    String source;
-    String destination;
-    Integer type;
+    private String source;
+    private String destination;
+    private String trainColor;
+    private Integer type;
 }

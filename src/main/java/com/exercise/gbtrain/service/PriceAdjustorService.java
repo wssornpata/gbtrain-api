@@ -2,6 +2,7 @@ package com.exercise.gbtrain.service;
 
 import com.exercise.gbtrain.dto.priceadjustor.request.PriceAdjustorDetailRequest;
 import com.exercise.gbtrain.dto.priceadjustor.request.PriceAdjustorRequest;
+import com.exercise.gbtrain.dto.priceadjustor.response.PriceAdjustorDetailResponse;
 import com.exercise.gbtrain.dto.priceadjustor.response.PriceAdjustorResponse;
 import com.exercise.gbtrain.entity.FareRateEntity;
 import com.exercise.gbtrain.repository.FareRateRepository;
@@ -11,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,9 +37,9 @@ public class PriceAdjustorService {
     }
 
     private List<PriceAdjustorResponse> wrapperPriceAdjustorResponse(List<FareRateEntity> fareRateEntityList) {
-        List<PriceAdjustorResponse> responseList = new ArrayList<>();
+        List<PriceAdjustorResponse> responses = new ArrayList<>();
 
-        return responseList;
+        return responses;
     }
 
     @Transactional
@@ -56,7 +55,6 @@ public class PriceAdjustorService {
                         fareRateRepository.save(fareRateEntity);
                     });
         }
-
         return this.getPrice(trainColor);
     }
 }

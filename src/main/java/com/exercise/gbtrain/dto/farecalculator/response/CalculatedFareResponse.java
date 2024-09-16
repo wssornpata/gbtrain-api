@@ -7,5 +7,5 @@ public class CalculatedFareResponse {
     private String source;
     private String destination;
     private int distance;
-    private int price;
+    private float price;
 }
