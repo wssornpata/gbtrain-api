@@ -20,7 +20,7 @@ public class DropDownController {
     }
 
     @GetMapping()
-    public ResponseEntity<?> dropDown() {
+    public ResponseEntity<Object> dropDown() {
         var response = dropDownService.getDropDown();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

@@ -1,17 +1,24 @@
 package com.exercise.gbtrain.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "station")
 @Data
+@Table(name = "station")
 public class StationEntity {
 
     @Id
-    private String station_id;
+    @Column(name = "station_id", unique = true, nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
-    private String station_name;
+    @Column(name = "station_name", unique = true, nullable = false, length = 5)
+    private String stationName;
+
+    @Column(name = "station_fullname", nullable = false, length = 255)
+    private String stationFullname;
+
+    @Column(name = "train_color", nullable = false, length = 100)
+    private String trainColor;
 }
