@@ -1,18 +1,17 @@
 package com.exercise.gbtrain.service;
 
+import com.exercise.gbtrain.dto.priceadjustor.request.GetPriceAdjustorRequest;
 import com.exercise.gbtrain.dto.priceadjustor.request.PriceAdjustorDetailRequest;
 import com.exercise.gbtrain.dto.priceadjustor.request.PriceAdjustorRequest;
-import com.exercise.gbtrain.dto.priceadjustor.response.PriceAdjustorDetailResponse;
-import com.exercise.gbtrain.dto.priceadjustor.response.PriceAdjustorResponse;
 import com.exercise.gbtrain.entity.FareRateEntity;
 import com.exercise.gbtrain.repository.FareRateRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -26,35 +25,79 @@ public class PriceAdjustorService {
         this.fareRateRepository = fareRateRepository;
     }
 
-    public List<PriceAdjustorResponse> getPrice() {
-        List<FareRateEntity> fareRateEntityList = fareRateRepository.findAll();
-        return wrapperPriceAdjustorResponse(fareRateEntityList);
+    public List<FareRateEntity> getPrice(GetPriceAdjustorRequest getPriceAdjustorRequest) {
+        return fareRateRepository.findAllByTrainColorOrderByIdAsc(getPriceAdjustorRequest.getTrainColor());
     }
 
-    public List<PriceAdjustorResponse> getPrice(String trainColor) {
-        List<FareRateEntity> fareRateEntityList = fareRateRepository.findAllByTrainColorOrderByIdAsc(trainColor);
-        return wrapperPriceAdjustorResponse(fareRateEntityList);
-    }
-
-    private List<PriceAdjustorResponse> wrapperPriceAdjustorResponse(List<FareRateEntity> fareRateEntityList) {
-        List<PriceAdjustorResponse> responses = new ArrayList<>();
-
-        return responses;
+    public List<FareRateEntity> getPrice(PriceAdjustorRequest priceAdjustorRequest) {
+        return fareRateRepository.findAllByTrainColorOrderByIdAsc(priceAdjustorRequest.getTrainColor());
     }
 
     @Transactional
-    public List<PriceAdjustorResponse> adjustPrice(PriceAdjustorRequest priceAdjustorRequest) {
+    public String createPrice(PriceAdjustorRequest priceAdjustorRequest) {
+        validateRequest(priceAdjustorRequest);
+
         String trainColor = priceAdjustorRequest.getTrainColor();
         LocalDateTime now = LocalDateTime.now();
-        for (PriceAdjustorDetailRequest priceAdjustorDetailRequest : priceAdjustorRequest.getPriceAdjustorDetailRequests()) {
-            fareRateRepository.findById(priceAdjustorDetailRequest.getId())
-                    .ifPresent(fareRateEntity -> {
-                        fareRateEntity.setPrice(priceAdjustorDetailRequest.getPrice());
-                        fareRateEntity.setDistance(priceAdjustorDetailRequest.getDistance());
-                        fareRateEntity.setUpdateDatetime(now);
-                        fareRateRepository.save(fareRateEntity);
-                    });
+
+        for (PriceAdjustorDetailRequest detailRequest : priceAdjustorRequest.getPriceAdjustorDetailRequests()) {
+            createFareRate(trainColor, detailRequest, now);
         }
-        return this.getPrice(trainColor);
+
+        return trainColor;
+    }
+
+    private void validateRequest(PriceAdjustorRequest request) {
+    }
+
+    private void createFareRate(String trainColor, PriceAdjustorDetailRequest detailRequest, LocalDateTime now) {
+        if(fareRateRepository.existsByTrainColorAndDistance(trainColor, detailRequest.getDistance())){
+            throw new EntityNotFoundException("Price adjustor with train color " + trainColor + " already exists");
+        }
+        fareRateRepository.save(wrapperCreateFareRateEntity(trainColor, detailRequest, now));
+    }
+
+    private FareRateEntity wrapperCreateFareRateEntity(String trainColor, PriceAdjustorDetailRequest detailRequest, LocalDateTime now) {
+        FareRateEntity fareRateEntity = new FareRateEntity();
+        fareRateEntity.setTrainColor(trainColor);
+        fareRateEntity.setDescription(detailRequest.getDescription());
+        fareRateEntity.setDistance(detailRequest.getDistance());
+        fareRateEntity.setPrice(detailRequest.getPrice());
+        fareRateEntity.setUpdateDatetime(now);
+        return fareRateEntity;
+    }
+
+    @Transactional
+    public String adjustPrice(PriceAdjustorRequest priceAdjustorRequest) {
+        validateRequest(priceAdjustorRequest);
+
+        String trainColor = priceAdjustorRequest.getTrainColor();
+        LocalDateTime now = LocalDateTime.now();
+
+        for (PriceAdjustorDetailRequest detailRequest : priceAdjustorRequest.getPriceAdjustorDetailRequests()) {
+            updateFareRate(trainColor, detailRequest, now);
+        }
+
+        return trainColor;
+    }
+
+    private void updateFareRate(String trainColor, PriceAdjustorDetailRequest detailRequest, LocalDateTime now) {
+        FareRateEntity fareRateEntity = fareRateRepository.findOneByTrainColorAndDistance(
+                trainColor,
+                detailRequest.getDistance());
+
+        if (fareRateEntity == null) {
+            throw new EntityNotFoundException("Fare rate not found");
+        }
+
+        fareRateRepository.save(wrapperUpdateFareRate(detailRequest, now));
+    }
+
+    private FareRateEntity wrapperUpdateFareRate(PriceAdjustorDetailRequest detailRequest, LocalDateTime now) {
+        FareRateEntity fareRateEntity = new FareRateEntity();
+        fareRateEntity.setDescription(detailRequest.getDescription());
+        fareRateEntity.setPrice(detailRequest.getPrice());
+        fareRateEntity.setUpdateDatetime(now);
+        return fareRateEntity;
     }
 }

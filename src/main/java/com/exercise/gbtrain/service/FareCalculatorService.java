@@ -37,7 +37,7 @@ public class FareCalculatorService {
     }
 
     public List<ColorMappingEntity> getColorMappings() {
-        return colorMappingRepository.findAll();
+        return colorMappingRepository.findAllByOrderByIdAsc();
     }
 
     public List<FareRateResponse> getFareRates(FareRateRequest fareRateRequest) {
@@ -53,6 +53,7 @@ public class FareCalculatorService {
             response.setPrice(fareRateEntity.getPrice());
             response.setDescription(fareRateEntity.getDescription());
             response.setUpdateDatetime(fareRateEntity.getUpdateDatetime());
+            responses.add(response);
         }
         return responses;
     }

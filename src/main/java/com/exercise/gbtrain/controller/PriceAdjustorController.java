@@ -1,5 +1,6 @@
 package com.exercise.gbtrain.controller;
 
+import com.exercise.gbtrain.dto.priceadjustor.request.GetPriceAdjustorRequest;
 import com.exercise.gbtrain.dto.priceadjustor.request.PriceAdjustorRequest;
 import com.exercise.gbtrain.service.PriceAdjustorService;
 import org.slf4j.Logger;
@@ -20,14 +21,14 @@ public class PriceAdjustorController {
     }
 
     @GetMapping ("/getprice")
-    public ResponseEntity<Object> getPrice() {
-        var response = priceAdjustorService.getPrice();
+    public ResponseEntity<Object> getPrice(@RequestBody GetPriceAdjustorRequest getPriceAdjustorRequest) {
+        var response = priceAdjustorService.getPrice(getPriceAdjustorRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping("/createprice")
     public ResponseEntity<Object> createPrice(@RequestBody PriceAdjustorRequest priceAdjustorRequest) {
-        var response = priceAdjustorService.getPrice();
+        var response = priceAdjustorService.createPrice(priceAdjustorRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

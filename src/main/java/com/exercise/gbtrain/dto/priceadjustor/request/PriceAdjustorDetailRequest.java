@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class PriceAdjustorDetailRequest {
-    private int id;
+    private String description;
     private int distance;
     private float price;
 }
