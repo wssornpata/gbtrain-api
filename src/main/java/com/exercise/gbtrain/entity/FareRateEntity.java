@@ -26,8 +26,6 @@ public class FareRateEntity {
     @Column(name = "update_datetime")
     private LocalDateTime updateDatetime;
 
-    @Column(name = "train_color")
-    private String trainColor;
 //    @ManyToOne
 //    @JoinColumn(name = "train_color", referencedColumnName = "train_color", nullable = false)
 //    private ColorMappingEntity colorMapping;

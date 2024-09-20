@@ -9,7 +9,9 @@ import java.util.List;
 @Repository
 public interface FareRateRepository extends JpaRepository<FareRateEntity, Integer> {
 
-    List<FareRateEntity> findAllByTrainColorOrderByIdAsc(String trainColor);
-    FareRateEntity findOneByTrainColorAndDistance(String trainColor, int distance);
-    Boolean existsByTrainColorAndDistance(String trainColor, int distance);
+    List<FareRateEntity> findAllByOrderByIdAsc();
+    FareRateEntity findOneByDistance(int distance);
+    FareRateEntity findTopByOrderByDistanceDesc();
+    FareRateEntity findTopByOrderByDistanceAsc();
+    Boolean existsByDistance(int distance);
 }

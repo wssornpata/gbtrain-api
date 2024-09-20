@@ -19,6 +19,4 @@ public class StationEntity {
     @Column(name = "station_fullname", nullable = false, length = 255)
     private String stationFullname;
 
-    @Column(name = "train_color", nullable = false, length = 100)
-    private String trainColor;
 }

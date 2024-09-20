@@ -1,6 +1,5 @@
 package com.exercise.gbtrain.service;
 
-import com.exercise.gbtrain.dto.station.TrainStationRequest;
 import com.exercise.gbtrain.dto.station.response.StationListResponse;
 import com.exercise.gbtrain.entity.StationEntity;
 import com.exercise.gbtrain.repository.StationRepository;
@@ -8,8 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class StationService {
@@ -27,20 +26,7 @@ public class StationService {
         return wrapperStationListResponse(stationEntityList);
     }
 
-    public List<StationListResponse> getStationListByTrainColor(TrainStationRequest trainStationRequest){
-        List<StationEntity> stationEntityList = stationRepository.findAllByTrainColorOrderByIdAsc(trainStationRequest.getTrainColor());
-        return wrapperStationListResponse(stationEntityList);
-    }
-
     private List<StationListResponse> wrapperStationListResponse(List<StationEntity> stationEntityList){
-        List<StationListResponse> responseList = new ArrayList<>();
-        for(StationEntity stationEntity : stationEntityList){
-            StationListResponse response = new StationListResponse();
-            response.setId(stationEntity.getId());
-            response.setStationName(stationEntity.getStationName());
-            response.setStationFullname(stationEntity.getStationFullname());
-            responseList.add(response);
-        }
-        return responseList;
+        return stationEntityList.stream().map(StationListResponse::formStationEntity).collect(Collectors.toList());
     }
 }

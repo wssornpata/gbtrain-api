@@ -1,16 +1,13 @@
 package com.exercise.gbtrain.controller;
 
 import com.exercise.gbtrain.dto.farecalculator.request.FareCalculatorRequest;
-import com.exercise.gbtrain.dto.farecalculator.request.FareRateRequest;
 import com.exercise.gbtrain.service.FareCalculatorService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/calculator")
 public class FareCalculatorController {
     private final FareCalculatorService fareCalculatorService;
@@ -19,19 +16,13 @@ public class FareCalculatorController {
         this.fareCalculatorService = fareCalculatorService;
     }
 
-    @GetMapping("/getcolormapping")
-    public ResponseEntity<Object> getColorMapping(){
-        var response = fareCalculatorService.getColorMappings();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
     @GetMapping("/getfarerate")
-    public ResponseEntity<Object> getFareRate(@RequestBody FareRateRequest fareRateRequest){
-        var response = fareCalculatorService.getFareRates(fareRateRequest);
+    public ResponseEntity<Object> getFareRate(){
+        var response = fareCalculatorService.getFareRates();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @GetMapping("/calculatefare")
+    @PostMapping("/calculatefare")
     public ResponseEntity<Object> calculateFare(@RequestBody FareCalculatorRequest fareCalculatorRequest){
         var response = fareCalculatorService.calculateFare(fareCalculatorRequest);
         return ResponseEntity.status(HttpStatus.OK).body(response);

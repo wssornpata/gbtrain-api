@@ -10,5 +10,4 @@ import java.util.List;
 public interface StationRepository extends JpaRepository<StationEntity, String> {
 
     List<StationEntity> findAllByOrderByIdAsc();
-    List<StationEntity> findAllByTrainColorOrderByIdAsc(String trainColor);
 }

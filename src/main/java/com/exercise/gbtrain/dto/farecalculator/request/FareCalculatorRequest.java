@@ -6,6 +6,5 @@ import lombok.Data;
 public class FareCalculatorRequest {
     private String source;
     private String destination;
-    private String trainColor;
     private Integer type;
 }
