@@ -1,8 +1,6 @@
 package com.exercise.gbtrain.service;
 
-import com.exercise.gbtrain.dto.station.response.StationListResponse;
 import com.exercise.gbtrain.dto.type.response.TypeListResponse;
-import com.exercise.gbtrain.entity.StationEntity;
 import com.exercise.gbtrain.entity.TypeEntity;
 import com.exercise.gbtrain.repository.TypeRepository;
 import org.slf4j.Logger;

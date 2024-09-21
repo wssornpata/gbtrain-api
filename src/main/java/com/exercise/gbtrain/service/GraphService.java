@@ -14,16 +14,23 @@ public class GraphService {
     private final Logger logger = LoggerFactory.getLogger(GraphService.class);
 
     private final List<StationMappingEntity> mappings;
+    private final StationMappingRepository stationMappingRepository;
 
     public GraphService(StationMappingRepository stationMappingRepository) {
-        mappings = stationMappingRepository.findAll();
+        this.stationMappingRepository = stationMappingRepository;
+        mappings = getMappings();
+    }
+
+
+    public List<StationMappingEntity> getMappings() {
+        stationMappingRepository.findAll();
+        return null;
     }
 
     private int findShortestPath(Map<String, List<String>> graph, String source, String destination) {
         Queue<String> queue = new LinkedList<>();
         Queue<String> visited = new LinkedList<>();
         Map<String, Integer> distance = new HashMap<>();
-
 
         queue.add(source);
         visited.add(source);

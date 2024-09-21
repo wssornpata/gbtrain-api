@@ -6,6 +6,7 @@ import com.exercise.gbtrain.repository.StationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,12 +22,13 @@ public class StationService {
         this.stationRepository = stationRepository;
     }
 
+    @Transactional (readOnly = true)
     public List<StationListResponse> getStationList(){
         List<StationEntity> stationEntityList = stationRepository.findAllByOrderByIdAsc();
-        return wrapperStationListResponse(stationEntityList);
+        return wrapperStationListResponses(stationEntityList);
     }
 
-    private List<StationListResponse> wrapperStationListResponse(List<StationEntity> stationEntityList){
+    private List<StationListResponse> wrapperStationListResponses(List<StationEntity> stationEntityList){
         return stationEntityList.stream().map(StationListResponse::formStationEntity).collect(Collectors.toList());
     }
 }

@@ -5,6 +5,7 @@ import com.exercise.gbtrain.dto.type.response.TypeListResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,11 +20,13 @@ public class DropDownService {
         this.typeService = typeService;
     }
 
+    @Transactional(readOnly = true)
     public List<StationListResponse> getStationDropDown() {
         logger.info("DropdownService: getStationDropDown");
         return stationService.getStationList();
     }
 
+    @Transactional(readOnly = true)
     public List<TypeListResponse> getTypeDropDown() {
         logger.info("DropdownService: getTypeDropDown");
         return typeService.getTypeList();

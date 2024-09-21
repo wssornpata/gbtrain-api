@@ -4,11 +4,10 @@ import com.exercise.gbtrain.dto.farecalculator.request.FareCalculatorRequest;
 import com.exercise.gbtrain.dto.farecalculator.response.CalculatedFareResponse;
 import com.exercise.gbtrain.dto.farecalculator.response.FareRateResponse;
 import com.exercise.gbtrain.entity.ExtendMappingEntity;
+import com.exercise.gbtrain.entity.ExtendPriceEntity;
 import com.exercise.gbtrain.entity.FareRateEntity;
 import com.exercise.gbtrain.entity.TransactionEntity;
-import com.exercise.gbtrain.repository.ExtendMappingRepository;
-import com.exercise.gbtrain.repository.FareRateRepository;
-import com.exercise.gbtrain.repository.TransactionRepository;
+import com.exercise.gbtrain.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,111 +19,166 @@ import java.util.Objects;
 
 @Service
 public class FareCalculatorService {
-    private final Logger logger = LoggerFactory.getLogger(FareCalculatorService.class);
+    private static final Logger logger = LoggerFactory.getLogger(FareCalculatorService.class);
+
     private final FareRateRepository fareRateRepository;
     private final TransactionRepository transactionRepository;
     private final ExtendMappingRepository extendMappingRepository;
-
+    private final ExtendPriceRepository extendPriceRepository;
     private final GraphService graphService;
+    private final StationRepository stationRepository;
+    private final TypeRepository typeRepository;
 
-    public FareCalculatorService(FareRateRepository fareRateRepository, TransactionRepository transactionRepository, ExtendMappingRepository extendMappingRepository, GraphService graphService) {
+    public FareCalculatorService(FareRateRepository fareRateRepository,
+                                 TransactionRepository transactionRepository,
+                                 ExtendMappingRepository extendMappingRepository,
+                                 ExtendPriceRepository extendPriceRepository,
+                                 GraphService graphService, StationRepository stationRepository, TypeRepository typeRepository) {
         this.fareRateRepository = fareRateRepository;
         this.transactionRepository = transactionRepository;
         this.extendMappingRepository = extendMappingRepository;
+        this.extendPriceRepository = extendPriceRepository;
         this.graphService = graphService;
+        this.stationRepository = stationRepository;
+        this.typeRepository = typeRepository;
     }
 
     @Transactional(readOnly = true)
     public List<FareRateResponse> getFareRates() {
-        logger.info("FareCalculatorService: getFareRates");
-        List<FareRateEntity> fareRateEntityList = fareRateRepository.findAllByOrderByIdAsc();
-        return wrapperFareRateResponse(fareRateEntityList);
+        logger.info("Fetching fare rates");
+        List<FareRateEntity> fareRateEntities = fareRateRepository.findAllByOrderByIdAsc();
+        return wrapperFareRateResponses(fareRateEntities);
     }
 
-    private List<FareRateResponse> wrapperFareRateResponse(List<FareRateEntity> fareRateEntityList) {
+    private List<FareRateResponse> wrapperFareRateResponses(List<FareRateEntity> fareRateEntities) {
         List<FareRateResponse> responses = new ArrayList<>();
-        for (FareRateEntity fareRateEntity : fareRateEntityList) {
-            FareRateResponse response = new FareRateResponse();
-            response.setDistance(fareRateEntity.getDistance());
-            response.setPrice(fareRateEntity.getPrice());
-            response.setDescription(fareRateEntity.getDescription());
-            response.setUpdateDatetime(fareRateEntity.getUpdateDatetime());
-            responses.add(response);
+        for (FareRateEntity entity : fareRateEntities) {
+            responses.add(new FareRateResponse(
+                    entity.getDistance(),
+                    entity.getPrice(),
+                    entity.getDescription(),
+                    entity.getUpdateDatetime()
+            ));
         }
         return responses;
     }
 
-    @Transactional (readOnly = true)
-    public CalculatedFareResponse calculateFare(FareCalculatorRequest fareCalculatorRequest) {
-        validateFareCalculatorRequest(fareCalculatorRequest);
+    public CalculatedFareResponse calculateFare(FareCalculatorRequest request) {
+        validateFareCalculatorRequest(request);
 
-        String source = fareCalculatorRequest.getSource();
-        String destination = fareCalculatorRequest.getDestination();
+        String source = request.getSource();
+        String destination = request.getDestination();
+        logger.info("FareCalculatorService: calculateFare WHERE source:{} destination:{}",source,destination);
+        int distance = graphService.getDistance(source, destination);
 
-        int distanceSourceToDestination = graphService.getDistance(source, destination);
-
-        if (distanceSourceToDestination == -1) {
-            //check isExistsRoute
+        if (!hasRoute(distance)) {
+            throw new IllegalArgumentException("No route found between source and destination");
         }
-        float price = this.getPrice(distanceSourceToDestination, source, destination);
 
-        transactionRepository.save(wrapperTransactionEntity(fareCalculatorRequest, price));
-        return wrapperCalculatedFareResponse(fareCalculatorRequest, distanceSourceToDestination, price);
+        int type = request.getType();
+        float price = calculatePrice(distance, source, destination, type);
+        transactionRepository.save(createTransactionEntity(request, price));
+
+        return wrapperCalculatedFareResponse(request, distance, price,type);
     }
 
-    private void validateFareCalculatorRequest(FareCalculatorRequest fareCalculatorRequest) {
-        //check source exists
-        //check Destination exists
-        //check station deprecated?
-        //check type
+    public void validateFareCalculatorRequest(FareCalculatorRequest request) {
+        if (!stationRepository.existsByStationName(request.getSource())) {
+            throw new IllegalArgumentException("Source is not exists");
+        }
 
+        if (!stationRepository.existsByStationName(request.getDestination())) {
+            throw new IllegalArgumentException("Destination is not exists");
+        }
+
+        if (!typeRepository.existsByType(request.getType())) {
+            throw new IllegalArgumentException("Type is not exists");
+        }
     }
 
-    private float getPrice(int distanceSourceToDestination, String source, String destination) {
-        FareRateEntity fareRateEntity;
+    private boolean hasRoute(int distance) {
+        return distance != -1;
+    }
+
+    private float calculatePrice(int distance, String source, String destination,int type) {
+        FareRateEntity fareRateEntity = getFareRateEntity(distance, source, destination);
+
+        if(type == 2){
+            ExtendMappingEntity sourceMapping = extendMappingRepository.findByStationName(source);
+            ExtendMappingEntity destinationMapping = extendMappingRepository.findByStationName(destination);
+            return calculateFinalPrice(fareRateEntity, sourceMapping, destinationMapping);
+        }else {
+            return fareRateEntity.getPrice();
+        }
+    }
+
+    private FareRateEntity getFareRateEntity(int distance, String source, String destination) {
         if (!Objects.equals(source, destination)) {
-            fareRateEntity = fareRateRepository.findTopByOrderByDistanceDesc();
-            fareRateEntity = (distanceSourceToDestination >= fareRateEntity.getDistance())
-                    ? fareRateEntity
-                    : fareRateRepository.findOneByDistance(distanceSourceToDestination);
+            FareRateEntity maxDistanceEntity = fareRateRepository.findTopByOrderByDistanceDesc();
+            return (distance >= maxDistanceEntity.getDistance())
+                    ? maxDistanceEntity
+                    : fareRateRepository.findOneByDistance(distance);
         } else {
-            fareRateEntity = fareRateRepository.findTopByOrderByDistanceAsc();
+            return fareRateRepository.findTopByOrderByDistanceAsc();
         }
-        ExtendMappingEntity sourceExtendMappingEntity = extendMappingRepository.findByStationName(source);
-        ExtendMappingEntity destinationExtendMappingEntity = extendMappingRepository.findByStationName(destination);
-
-        return getFareRateEntityPrice(fareRateEntity, sourceExtendMappingEntity, destinationExtendMappingEntity);
     }
 
-    private static float getFareRateEntityPrice(FareRateEntity fareRateEntity, ExtendMappingEntity sourceExtendMappingEntity, ExtendMappingEntity destinationExtendMappingEntity) {
-        float fareRateEntityPrice = fareRateEntity.getPrice();
-        float sourceExtendPrice = sourceExtendMappingEntity != null ? sourceExtendMappingEntity.getExtendPriceEntity().getExtendPrice() : 0;
-        float destinationExtendPrice = destinationExtendMappingEntity != null ? destinationExtendMappingEntity.getExtendPriceEntity().getExtendPrice() : 0;
+    private float calculateFinalPrice(FareRateEntity fareRateEntity,
+                                      ExtendMappingEntity sourceMapping,
+                                      ExtendMappingEntity destinationMapping) {
 
-        if (sourceExtendMappingEntity != null && destinationExtendMappingEntity != null) {
-            if (sourceExtendMappingEntity.getExtendPriceEntity().getId() == destinationExtendMappingEntity.getExtendPriceEntity().getId()) {
-                fareRateEntityPrice = sourceExtendPrice;
-            } else {
-                fareRateEntityPrice += sourceExtendPrice;
+        float basePrice = fareRateEntity.getPrice();
+
+        boolean isSourceExtend = isExtend(sourceMapping);
+        boolean isDestinationExtend = isExtend(destinationMapping);
+
+        if (isSourceExtend && isDestinationExtend) {
+            return calculatePriceForBothExtends(basePrice, sourceMapping, destinationMapping);
+        } else if (isSourceExtend) {
+            return basePrice + sourceMapping.getExtendPriceEntity().getExtendPrice();
+        } else if (isDestinationExtend) {
+            return basePrice + destinationMapping.getExtendPriceEntity().getExtendPrice();
+        }
+
+        return basePrice;
+    }
+
+    private float calculatePriceForBothExtends(float basePrice,
+                                               ExtendMappingEntity sourceMapping,
+                                               ExtendMappingEntity destinationMapping) {
+        if (isSameExtendPriceEntity(sourceMapping, destinationMapping)) {
+            return sourceMapping.getExtendPriceEntity().getExtendPrice();
+        } else {
+            String combinedExtendName = sourceMapping.getExtendPriceEntity().getExtendName() +
+                    destinationMapping.getExtendPriceEntity().getExtendName();
+            ExtendPriceEntity additionalPriceEntity = extendPriceRepository.findByExtendName(combinedExtendName);
+            if (additionalPriceEntity != null) {
+                return basePrice + additionalPriceEntity.getExtendPrice();
             }
-        } else if (sourceExtendMappingEntity != null) {
-            fareRateEntityPrice += sourceExtendPrice;
-        } else if (destinationExtendMappingEntity != null) {
-            fareRateEntityPrice += destinationExtendPrice;
+            return basePrice + sourceMapping.getExtendPriceEntity().getExtendPrice();
         }
-        return fareRateEntityPrice;
     }
 
-    private TransactionEntity wrapperTransactionEntity(FareCalculatorRequest fareCalculatorRequest, float price) {
-        return TransactionEntity.formTransactionEntity(fareCalculatorRequest, price);
+    private boolean isExtend(ExtendMappingEntity mapping) {
+        return mapping != null;
     }
 
-    private CalculatedFareResponse wrapperCalculatedFareResponse(FareCalculatorRequest fareCalculatorRequest, int distance, float price) {
-        CalculatedFareResponse response = new CalculatedFareResponse();
-        response.setSource(fareCalculatorRequest.getSource());
-        response.setDestination(fareCalculatorRequest.getDestination());
-        response.setDistance(distance);
-        response.setPrice(price);
-        return response;
+    private boolean isSameExtendPriceEntity(ExtendMappingEntity sourceMapping,
+                                            ExtendMappingEntity destinationMapping) {
+        return sourceMapping.getExtendPriceEntity().getId() == destinationMapping.getExtendPriceEntity().getId();
+    }
+
+    private TransactionEntity createTransactionEntity(FareCalculatorRequest request, float price) {
+        return TransactionEntity.formTransactionEntity(request, price);
+    }
+
+    private CalculatedFareResponse wrapperCalculatedFareResponse(FareCalculatorRequest request, int distance, float price, int type) {
+        return new CalculatedFareResponse(
+                request.getSource(),
+                request.getDestination(),
+                distance,
+                price,
+                type
+        );
     }
 }
