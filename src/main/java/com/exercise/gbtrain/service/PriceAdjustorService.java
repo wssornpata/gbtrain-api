@@ -2,8 +2,9 @@ package com.exercise.gbtrain.service;
 
 import com.exercise.gbtrain.dto.priceadjustor.request.PriceAdjustorRequest;
 import com.exercise.gbtrain.entity.FareRateEntity;
+import com.exercise.gbtrain.exception.EntityNotFoundException;
+import com.exercise.gbtrain.exception.GlobalRuntimeException;
 import com.exercise.gbtrain.repository.FareRateRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -23,40 +24,9 @@ public class PriceAdjustorService {
         this.fareRateRepository = fareRateRepository;
     }
 
-    public List<FareRateEntity> getPrice() {
+    @Transactional(readOnly = true)
+    public List<FareRateEntity> getfarerate() {
         return fareRateRepository.findAllByOrderByIdAsc();
-    }
-
-    @Transactional
-    public List<FareRateEntity> createPrice(List<PriceAdjustorRequest> priceAdjustorRequestList) {
-        LocalDateTime now = LocalDateTime.now();
-
-        for (PriceAdjustorRequest priceAdjustorRequest : priceAdjustorRequestList) {
-            validateCreateRequest(priceAdjustorRequest);
-            createFareRate(priceAdjustorRequest, now);
-        }
-
-        return fareRateRepository.findAllByOrderByIdAsc();
-    }
-
-    private void validateCreateRequest(PriceAdjustorRequest priceAdjustorRequest) {
-
-    }
-
-    private void createFareRate(PriceAdjustorRequest priceAdjustorRequest, LocalDateTime now) {
-        if(fareRateRepository.existsByDistance(priceAdjustorRequest.getDistance())){
-            throw new EntityNotFoundException("Distance "+ priceAdjustorRequest.getDistance() +" price is already exists");
-        }
-        fareRateRepository.save(wrapperCreateFareRateEntity(priceAdjustorRequest, now));
-    }
-
-    private FareRateEntity wrapperCreateFareRateEntity(PriceAdjustorRequest priceAdjustorRequest, LocalDateTime now) {
-        FareRateEntity fareRateEntity = new FareRateEntity();
-        fareRateEntity.setDescription(priceAdjustorRequest.getDescription());
-        fareRateEntity.setDistance(priceAdjustorRequest.getDistance());
-        fareRateEntity.setPrice(priceAdjustorRequest.getPrice());
-        fareRateEntity.setUpdateDatetime(now);
-        return fareRateEntity;
     }
 
     @Transactional
@@ -75,16 +45,11 @@ public class PriceAdjustorService {
     private void updateFareRate(PriceAdjustorRequest priceAdjustorRequest, LocalDateTime now) {
         FareRateEntity fareRateEntity = fareRateRepository.findOneByDistance(priceAdjustorRequest.getDistance());
         if (fareRateEntity == null) {
-            throw new EntityNotFoundException("Fare rate not found");
+            throw new EntityNotFoundException("Fare rate does not exist");
         }
-        fareRateRepository.save(wrapperUpdateFareRateEntity(priceAdjustorRequest, now));
-    }
-
-    private FareRateEntity wrapperUpdateFareRateEntity(PriceAdjustorRequest priceAdjustorRequest, LocalDateTime now) {
-        FareRateEntity fareRateEntity = new FareRateEntity();
         fareRateEntity.setDescription(priceAdjustorRequest.getDescription());
         fareRateEntity.setPrice(priceAdjustorRequest.getPrice());
         fareRateEntity.setUpdateDatetime(now);
-        return fareRateEntity;
+        fareRateRepository.save(fareRateEntity);
     }
 }

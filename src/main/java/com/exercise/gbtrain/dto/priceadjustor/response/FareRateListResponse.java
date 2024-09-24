@@ -5,7 +5,8 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class PriceAdjustorDetailResponse {
+public class FareRateListResponse {
+    private int id;
     private int distance;
     private float price;
     private LocalDateTime updateDateTime;

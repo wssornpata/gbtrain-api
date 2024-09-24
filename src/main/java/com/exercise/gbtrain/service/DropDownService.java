@@ -2,6 +2,7 @@ package com.exercise.gbtrain.service;
 
 import com.exercise.gbtrain.dto.station.response.StationListResponse;
 import com.exercise.gbtrain.dto.type.response.TypeListResponse;
+import com.exercise.gbtrain.exception.GlobalRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

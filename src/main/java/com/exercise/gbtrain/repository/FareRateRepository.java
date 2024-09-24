@@ -10,6 +10,7 @@ import java.util.List;
 public interface FareRateRepository extends JpaRepository<FareRateEntity, Integer> {
 
     List<FareRateEntity> findAllByOrderByIdAsc();
+    List<FareRateEntity> findAllByOrderByDistanceAsc();
     FareRateEntity findOneByDistance(int distance);
     FareRateEntity findTopByOrderByDistanceDesc();
     FareRateEntity findTopByOrderByDistanceAsc();

@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/station")
 public class StationController {
 
@@ -23,7 +22,7 @@ public class StationController {
         this.stationService = stationService;
     }
 
-    @GetMapping()
+    @GetMapping("/getstation")
     public ResponseEntity<Object> getAllStation() {
         var response = stationService.getStationList();
         return ResponseEntity.status(HttpStatus.OK).body(response);

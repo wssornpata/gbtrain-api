@@ -14,7 +14,7 @@ public class TransactionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "transaction_id")
-    private int transactionId;
+    private int id;
 
     @Column(name = "source", nullable = false, length = 5)
     private String source;

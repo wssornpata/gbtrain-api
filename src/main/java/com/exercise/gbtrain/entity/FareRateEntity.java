@@ -1,5 +1,7 @@
 package com.exercise.gbtrain.entity;
 
+import com.exercise.gbtrain.dto.priceadjustor.response.FareRateListResponse;
+import com.exercise.gbtrain.dto.station.response.StationListResponse;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -29,4 +31,13 @@ public class FareRateEntity {
 //    @ManyToOne
 //    @JoinColumn(name = "train_color", referencedColumnName = "train_color", nullable = false)
 //    private ColorMappingEntity colorMapping;
+
+    public static FareRateListResponse formFareRateEntity(FareRateEntity fareRateEntity) {
+        FareRateListResponse response = new FareRateListResponse();
+        response.setId(fareRateEntity.getId());
+        response.setDistance(fareRateEntity.getDistance());
+        response.setPrice(fareRateEntity.getPrice());
+        response.setUpdateDateTime(fareRateEntity.getUpdateDatetime());
+        return response;
+    }
 }

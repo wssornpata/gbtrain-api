@@ -5,6 +5,7 @@ import com.exercise.gbtrain.repository.StationMappingRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,16 +19,15 @@ public class GraphService {
 
     public GraphService(StationMappingRepository stationMappingRepository) {
         this.stationMappingRepository = stationMappingRepository;
-        mappings = getMappings();
+        this.mappings = getMappings();
     }
 
-
+    @Transactional (readOnly = true)
     public List<StationMappingEntity> getMappings() {
-        stationMappingRepository.findAll();
-        return null;
+        return stationMappingRepository.findAll();
     }
 
-    private int findShortestPath(Map<String, List<String>> graph, String source, String destination) {
+    private int findShortestPath(Map<String, List<String>> graph, String source, String destination, int type) {
         Queue<String> queue = new LinkedList<>();
         Queue<String> visited = new LinkedList<>();
         Map<String, Integer> distance = new HashMap<>();
@@ -41,7 +41,13 @@ public class GraphService {
             int currentDistance = distance.get(current);
 
             if (current.equals(destination)) {
-                return currentDistance;
+                if (type == 2) {
+                    //ต้องเอามาลบกับค่าสถานีลบส่วนต่อขยาย่าสุด
+                    int minus = distance.get("N8") != null ?distance.get("N8") : 0;
+                    return currentDistance - minus == 0 ? 1:currentDistance-minus;
+                } else {
+                    return currentDistance;
+                }
             }
 
             for (String neighbor : graph.getOrDefault(current, Collections.emptyList())) {
@@ -56,9 +62,9 @@ public class GraphService {
         return -1;
     }
 
-    public int getDistance(String source, String destination) {
+    public int getDistance(String source, String destination, int type) {
         Map<String, List<String>> graph = mappings.stream().collect(Collectors.groupingBy(StationMappingEntity::getFrom, Collectors.mapping(StationMappingEntity::getTo, Collectors.toList())));
-        return findShortestPath(graph, source, destination);
+        return findShortestPath(graph, source, destination, type);
     }
 
 }

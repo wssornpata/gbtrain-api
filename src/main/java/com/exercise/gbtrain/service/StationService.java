@@ -2,6 +2,7 @@ package com.exercise.gbtrain.service;
 
 import com.exercise.gbtrain.dto.station.response.StationListResponse;
 import com.exercise.gbtrain.entity.StationEntity;
+import com.exercise.gbtrain.exception.GlobalRuntimeException;
 import com.exercise.gbtrain.repository.StationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,7 @@ public class StationService {
         return wrapperStationListResponses(stationEntityList);
     }
 
-    private List<StationListResponse> wrapperStationListResponses(List<StationEntity> stationEntityList){
+    private List<StationListResponse> wrapperStationListResponses(List<StationEntity> stationEntityList) {
         return stationEntityList.stream().map(StationListResponse::formStationEntity).collect(Collectors.toList());
     }
 }
