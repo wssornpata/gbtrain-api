@@ -1,5 +1,6 @@
 package com.exercise.gbtrain.service;
 
+import com.exercise.gbtrain.entity.ExtendMappingEntity;
 import com.exercise.gbtrain.entity.StationMappingEntity;
 import com.exercise.gbtrain.repository.StationMappingRepository;
 import org.slf4j.Logger;
@@ -22,14 +23,14 @@ public class GraphService {
         this.mappings = getMappings();
     }
 
-    @Transactional (readOnly = true)
+    @Transactional(readOnly = true)
     public List<StationMappingEntity> getMappings() {
         return stationMappingRepository.findAll();
     }
 
-    private int findShortestPath(Map<String, List<String>> graph, String source, String destination, int type) {
+    private int findShortestPath(Map<String, List<String>> graph, String source, String destination, int type, ExtendMappingEntity sourceMapping, ExtendMappingEntity destinationMapping) {
         Queue<String> queue = new LinkedList<>();
-        Queue<String> visited = new LinkedList<>();
+        Set<String> visited = new HashSet<>(); // Use a Set for visited nodes
         Map<String, Integer> distance = new HashMap<>();
 
         queue.add(source);
@@ -42,12 +43,30 @@ public class GraphService {
 
             if (current.equals(destination)) {
                 if (type == 2) {
-                    //ต้องเอามาลบกับค่าสถานีลบส่วนต่อขยาย่าสุด
-                    int minus = distance.get("N8") != null ?distance.get("N8") : 0;
-                    return currentDistance - minus == 0 ? 1:currentDistance-minus;
-                } else {
-                    return currentDistance;
+                    Integer distanceN8 = distance.get("N8");
+                    Integer distanceE9 = distance.get("E9");
+
+                    if (distanceN8 != null && distanceE9 != null) {
+                        return currentDistance;
+                    }else if (distanceN8 != null) {
+                        if(sourceMapping != null && destinationMapping == null) {
+                            //ออกจาก Extend
+                            return currentDistance-distanceN8;
+                        } else if (destinationMapping != null && sourceMapping == null) {
+                            //เข้า Extend
+                            return distanceN8;
+                        }
+                    }else if (distanceE9 != null) {
+                        if(sourceMapping != null && destinationMapping == null) {
+                            //ออกจาก Extend
+                            return currentDistance-distanceE9;
+                        } else if (destinationMapping != null && sourceMapping == null) {
+                            //เข้า Extend
+                            return distanceE9;
+                        }
+                    }
                 }
+                return currentDistance;
             }
 
             for (String neighbor : graph.getOrDefault(current, Collections.emptyList())) {
@@ -58,13 +77,36 @@ public class GraphService {
                 }
             }
         }
-
         return -1;
     }
 
-    public int getDistance(String source, String destination, int type) {
+    public int getDistance(String source, String destination, int type, ExtendMappingEntity
+            sourceMapping, ExtendMappingEntity destinationMapping) {
         Map<String, List<String>> graph = mappings.stream().collect(Collectors.groupingBy(StationMappingEntity::getFrom, Collectors.mapping(StationMappingEntity::getTo, Collectors.toList())));
-        return findShortestPath(graph, source, destination, type);
+        int distance = findShortestPath(graph, source, destination, type, sourceMapping, destinationMapping);
+        return distance == 0 ? 1 : distance;
     }
-
+//
+//    private int calculateType2Distance(int currentDistance, Map<String, Integer> distance,
+//                                       ExtendMappingEntity sourceMapping, ExtendMappingEntity destinationMapping) {
+//        if (distance.get("N9") != null) {
+//            return calculateDistanceForKey("N9", currentDistance, distance, sourceMapping, destinationMapping);
+//        } else if (distance.get("E9") != null) {
+//            return calculateDistanceForKey("E9", currentDistance, distance, sourceMapping, destinationMapping);
+//        }
+//        return currentDistance;
+//    }
+//
+//    private int calculateDistanceForKey(String key, int currentDistance, Map<String, Integer> distance,
+//                                        ExtendMappingEntity sourceMapping, ExtendMappingEntity destinationMapping) {
+//        Integer keyDistance = distance.get(key);
+//        if (keyDistance != null) {
+//            if (sourceMapping != null && destinationMapping == null) {
+//                return currentDistance - keyDistance;
+//            } else if (sourceMapping == null && destinationMapping != null) {
+//                return keyDistance;
+//            }
+//        }
+//        return currentDistance;
+//    }
 }

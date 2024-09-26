@@ -29,7 +29,6 @@ public class PriceAdjustorController {
 
     @PatchMapping("/adjustprice")
     public ResponseEntity<Object> adjustPrice(@RequestBody  List<PriceAdjustorRequest>  priceAdjustorRequestList) {
-        logger.info(priceAdjustorRequestList.toString());
         var response = priceAdjustorService.adjustPrice(priceAdjustorRequestList);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

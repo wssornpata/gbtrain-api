@@ -4,6 +4,7 @@ import com.exercise.gbtrain.dto.priceadjustor.request.PriceAdjustorRequest;
 import com.exercise.gbtrain.entity.FareRateEntity;
 import com.exercise.gbtrain.exception.EntityNotFoundException;
 import com.exercise.gbtrain.exception.GlobalRuntimeException;
+import com.exercise.gbtrain.exception.TypoException;
 import com.exercise.gbtrain.repository.FareRateRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,22 @@ public class PriceAdjustorService {
     }
 
     private void validateAdjustRequest(PriceAdjustorRequest request) {
+        if (request == null) {
+            throw new TypoException("Request cannot be null");
+        }
+
+        if (request.getId() <= 0) {
+            throw new TypoException("ID must be greater than 0");
+        }
+        if (request.getDescription() == null || request.getDescription().isEmpty()) {
+            throw new TypoException("Description cannot be null or empty");
+        }
+        if (request.getDistance() < 0) {
+            throw new TypoException("Distance cannot be negative");
+        }
+        if (request.getPrice() < 0) {
+            throw new TypoException("Price cannot be negative");
+        }
     }
 
     private void updateFareRate(PriceAdjustorRequest priceAdjustorRequest, LocalDateTime now) {

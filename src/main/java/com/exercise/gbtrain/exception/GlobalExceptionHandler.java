@@ -17,21 +17,28 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleGlobalRuntimeException(GlobalRuntimeException ex) {
         String errorMessage = "An error occurred: " + ex.getMessage();
         logger.error(errorMessage);
-        return new ResponseEntity<>(new FailureResponse(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Object> handleStationNotFoundException(EntityNotFoundException ex) {
         String errorMessage = "Entity not found: " + ex.getMessage();
         logger.error(errorMessage);
-        return new ResponseEntity<>(new FailureResponse(errorMessage), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(TypoException.class)
+    public ResponseEntity<Object> handleTypeException(TypoException ex) {
+        String errorMessage = "Incorrect Typo: " + ex.getMessage();
+        logger.error(errorMessage);
+        return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(RouteNotFoundException.class)
     public ResponseEntity<Object> handleNoRouteFoundException(RouteNotFoundException ex) {
         String errorMessage = "Route not found: " + ex.getMessage();
         logger.error(errorMessage);
-        return new ResponseEntity<>(new FailureResponse(errorMessage), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.NOT_FOUND);
     }
 
 }
