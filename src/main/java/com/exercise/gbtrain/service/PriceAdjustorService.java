@@ -2,9 +2,7 @@ package com.exercise.gbtrain.service;
 
 import com.exercise.gbtrain.dto.priceadjustor.request.PriceAdjustorRequest;
 import com.exercise.gbtrain.entity.FareRateEntity;
-import com.exercise.gbtrain.exception.EntityNotFoundException;
-import com.exercise.gbtrain.exception.GlobalRuntimeException;
-import com.exercise.gbtrain.exception.TypoException;
+import com.exercise.gbtrain.exception.InvalidEntityAndTypoException;
 import com.exercise.gbtrain.repository.FareRateRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -32,41 +33,53 @@ public class PriceAdjustorService {
 
     @Transactional
     public List<FareRateEntity> adjustPrice(List<PriceAdjustorRequest> priceAdjustorRequestList) {
+        validatePriceAdjustorRequestList(priceAdjustorRequestList);
+
+        Map<Integer, PriceAdjustorRequest> requestMap = priceAdjustorRequestList.stream()
+                .collect(Collectors.toMap(PriceAdjustorRequest::getId, request -> request));
+
+        List<Integer> priceAdjusterRequestIdList = new ArrayList<>(requestMap.keySet());
+        List<FareRateEntity> fareRateEntities = fareRateRepository.findAllById(priceAdjusterRequestIdList);
         LocalDateTime now = LocalDateTime.now();
-        for (PriceAdjustorRequest priceAdjustorRequest : priceAdjustorRequestList) {
-            validateAdjustRequest(priceAdjustorRequest);
-            updateFareRate(priceAdjustorRequest, now);
+
+        for (FareRateEntity fareRateEntity : fareRateEntities) {
+            PriceAdjustorRequest priceAdjustorRequest = requestMap.get(fareRateEntity.getId());
+            if (priceAdjustorRequest != null) {
+                validateAdjustRequest(priceAdjustorRequest);
+
+                fareRateEntity.setDescription(priceAdjustorRequest.getDescription());
+                fareRateEntity.setPrice(priceAdjustorRequest.getPrice());
+                fareRateEntity.setUpdateDatetime(now);
+            }
         }
-        return fareRateRepository.findAllByOrderByIdAsc();
+        return fareRateRepository.saveAll(fareRateEntities);
+    }
+
+    private void validatePriceAdjustorRequestList(List<PriceAdjustorRequest> priceAdjustorRequestList) {
+        if (priceAdjustorRequestList == null || priceAdjustorRequestList.isEmpty()) {
+            throw new InvalidEntityAndTypoException("Request list cannot be null or empty", "Invalid Request");
+        }
     }
 
     private void validateAdjustRequest(PriceAdjustorRequest request) {
         if (request == null) {
-            throw new TypoException("Request cannot be null");
+            throw new InvalidEntityAndTypoException("Request cannot be null", "Invalid Request");
         }
 
         if (request.getId() <= 0) {
-            throw new TypoException("ID must be greater than 0");
+            throw new InvalidEntityAndTypoException("ID must be greater than 0", "Invalid ID");
         }
-        if (request.getDescription() == null || request.getDescription().isEmpty()) {
-            throw new TypoException("Description cannot be null or empty");
-        }
-        if (request.getDistance() < 0) {
-            throw new TypoException("Distance cannot be negative");
-        }
-        if (request.getPrice() < 0) {
-            throw new TypoException("Price cannot be negative");
-        }
-    }
 
-    private void updateFareRate(PriceAdjustorRequest priceAdjustorRequest, LocalDateTime now) {
-        FareRateEntity fareRateEntity = fareRateRepository.findOneByDistance(priceAdjustorRequest.getDistance());
-        if (fareRateEntity == null) {
-            throw new EntityNotFoundException("Fare rate does not exist");
+        if (request.getDescription() == null || request.getDescription().isEmpty()) {
+            throw new InvalidEntityAndTypoException("Description cannot be null or empty", "Invalid Description");
         }
-        fareRateEntity.setDescription(priceAdjustorRequest.getDescription());
-        fareRateEntity.setPrice(priceAdjustorRequest.getPrice());
-        fareRateEntity.setUpdateDatetime(now);
-        fareRateRepository.save(fareRateEntity);
+
+        if (request.getDistance() < 0) {
+            throw new InvalidEntityAndTypoException("Distance cannot be negative", "Invalid Distance");
+        }
+
+        if (request.getPrice() < 0) {
+            throw new InvalidEntityAndTypoException("Price cannot be negative", "Invalid Price");
+        }
     }
 }

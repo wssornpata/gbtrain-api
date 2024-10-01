@@ -28,16 +28,4 @@ public class FareRateEntity {
     @Column(name = "update_datetime")
     private LocalDateTime updateDatetime;
 
-//    @ManyToOne
-//    @JoinColumn(name = "train_color", referencedColumnName = "train_color", nullable = false)
-//    private ColorMappingEntity colorMapping;
-
-    public static FareRateListResponse formFareRateEntity(FareRateEntity fareRateEntity) {
-        FareRateListResponse response = new FareRateListResponse();
-        response.setId(fareRateEntity.getId());
-        response.setDistance(fareRateEntity.getDistance());
-        response.setPrice(fareRateEntity.getPrice());
-        response.setUpdateDateTime(fareRateEntity.getUpdateDatetime());
-        return response;
-    }
 }

@@ -8,6 +8,8 @@ import java.util.List;
 
 @Repository
 public interface StationRepository extends JpaRepository<StationEntity, String> {
+
     boolean existsByStationName(String stationName);
+
     List<StationEntity> findAllByOrderByIdAsc();
 }

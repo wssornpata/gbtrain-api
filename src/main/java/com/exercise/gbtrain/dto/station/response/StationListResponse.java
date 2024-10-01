@@ -2,11 +2,7 @@ package com.exercise.gbtrain.dto.station.response;
 
 import com.exercise.gbtrain.entity.StationEntity;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
-@Setter
-@Getter
 @Data
 public class StationListResponse {
     private int id;

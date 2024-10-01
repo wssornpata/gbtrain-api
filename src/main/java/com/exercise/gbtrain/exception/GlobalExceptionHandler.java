@@ -15,23 +15,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(GlobalRuntimeException.class)
     public ResponseEntity<Object> handleGlobalRuntimeException(GlobalRuntimeException ex) {
-        String errorMessage = "An error occurred: " + ex.getMessage();
+        String errorMessage = "An error occurred: ".concat(ex.getMessage());
         logger.error(errorMessage);
         return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<Object> handleStationNotFoundException(EntityNotFoundException ex) {
-        String errorMessage = "Entity not found: " + ex.getMessage();
+    @ExceptionHandler(InvalidEntityAndTypoException.class)
+    public ResponseEntity<Object> handleInvalidEntityAndTypoException(InvalidEntityAndTypoException ex) {
+        String errorMessage = "InvalidEntityAndTypoException : ".concat(ex.getMessage()).concat(" ").concat(ex.getDetailMessage());
         logger.error(errorMessage);
         return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(TypoException.class)
-    public ResponseEntity<Object> handleTypeException(TypoException ex) {
-        String errorMessage = "Incorrect Typo: " + ex.getMessage();
-        logger.error(errorMessage);
-        return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(RouteNotFoundException.class)
