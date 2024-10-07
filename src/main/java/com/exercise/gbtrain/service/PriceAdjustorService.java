@@ -70,7 +70,7 @@ public class PriceAdjustorService {
             throw new InvalidEntityAndTypoException("ID must be greater than 0", "Invalid ID");
         }
 
-        if (request.getDescription() == null || request.getDescription().isEmpty()) {
+        if (request.getDescription() == null || request.getDescription().isEmpty() || request.getDescription().length() > 255) {
             throw new InvalidEntityAndTypoException("Description cannot be null or empty", "Invalid Description");
         }
 

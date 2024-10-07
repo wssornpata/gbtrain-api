@@ -1,5 +1,6 @@
 package com.exercise.gbtrain.service;
 
+import com.exercise.gbtrain.configuration.ExtendConfig;
 import com.exercise.gbtrain.dto.farecalculator.FareCalculatorDistanceMap;
 import com.exercise.gbtrain.entity.ExtendMappingEntity;
 import com.exercise.gbtrain.entity.StationMappingEntity;
@@ -16,11 +17,15 @@ import java.util.stream.Collectors;
 @Service
 public class GraphService {
     private final Logger logger = LoggerFactory.getLogger(GraphService.class);
+
+    private final ExtendConfig extendConfig;
+
     private final StationMappingRepository stationMappingRepository;
 
     private List<StationMappingEntity> mappings;
 
-    public GraphService(StationMappingRepository stationMappingRepository) {
+    public GraphService(ExtendConfig extendConfig, StationMappingRepository stationMappingRepository) {
+        this.extendConfig = extendConfig;
         this.stationMappingRepository = stationMappingRepository;
     }
 
@@ -62,8 +67,7 @@ public class GraphService {
         return new FareCalculatorDistanceMap(-1, new HashMap<>());
     }
 
-    public int getDistance(String source, String destination, int type, ExtendMappingEntity
-            sourceMapping, ExtendMappingEntity destinationMapping) {
+    public int getDistance(String source, String destination, int type, ExtendMappingEntity sourceMapping, ExtendMappingEntity destinationMapping) {
         Map<String, List<String>> graph = mappings.stream().collect(Collectors.groupingBy(StationMappingEntity::getFrom, Collectors.mapping(StationMappingEntity::getTo, Collectors.toList())));
         return getFinalDistance(findShortestPath(graph, source, destination), type, sourceMapping, destinationMapping);
     }
@@ -77,22 +81,22 @@ public class GraphService {
 
         if (type == 2) {
             Map<String, Integer> distanceMap = fareCalculatorDistanceMap.getDistanceMap();
-            Integer distanceN8 = distanceMap.get("N8");
-            Integer distanceE9 = distanceMap.get("E9");
+            Integer startExtendA = distanceMap.get(extendConfig.getStartStationA());
+            Integer startExtendB = distanceMap.get(extendConfig.getStartStationB());
 
-            if (distanceN8 != null && distanceE9 != null) {
+            if (startExtendA != null && startExtendB != null) {
                 return currentDistance;
-            } else if (distanceN8 != null) {
+            } else if (startExtendA != null) {
                 if (sourceMapping != null && destinationMapping == null) {
-                    return currentDistance - distanceN8;
+                    return currentDistance - startExtendA;
                 } else if (destinationMapping != null && sourceMapping == null) {
-                    return distanceN8;
+                    return startExtendA;
                 }
-            } else if (distanceE9 != null) {
+            } else if (startExtendB != null) {
                 if (sourceMapping != null && destinationMapping == null) {
-                    return currentDistance - distanceE9;
+                    return currentDistance - startExtendB;
                 } else if (destinationMapping != null && sourceMapping == null) {
-                    return distanceE9;
+                    return startExtendB;
                 }
             }
         }

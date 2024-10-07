@@ -1,5 +1,6 @@
 package com.exercise.gbtrain.service;
 
+import com.exercise.gbtrain.configuration.ExtendConfig;
 import com.exercise.gbtrain.dto.farecalculator.request.FareCalculatorRequest;
 import com.exercise.gbtrain.dto.farecalculator.response.CalculatedFareResponse;
 import com.exercise.gbtrain.entity.ExtendMappingEntity;
@@ -19,19 +20,23 @@ import static com.exercise.gbtrain.dto.farecalculator.response.CalculatedFareRes
 public class FareCalculatorService {
     private static final Logger logger = LoggerFactory.getLogger(FareCalculatorService.class);
 
+    private final ExtendConfig extendConfig;
+
     private final FareRateRepository fareRateRepository;
     private final TransactionRepository transactionRepository;
     private final ExtendMappingRepository extendMappingRepository;
     private final ExtendPriceRepository extendPriceRepository;
-    private final GraphService graphService;
     private final StationRepository stationRepository;
     private final TypeRepository typeRepository;
 
-    public FareCalculatorService(FareRateRepository fareRateRepository,
+    private final GraphService graphService;
+
+    public FareCalculatorService(ExtendConfig extendConfig, FareRateRepository fareRateRepository,
                                  TransactionRepository transactionRepository,
                                  ExtendMappingRepository extendMappingRepository,
                                  ExtendPriceRepository extendPriceRepository,
                                  GraphService graphService, StationRepository stationRepository, TypeRepository typeRepository) {
+        this.extendConfig = extendConfig;
         this.fareRateRepository = fareRateRepository;
         this.transactionRepository = transactionRepository;
         this.extendMappingRepository = extendMappingRepository;
@@ -143,16 +148,12 @@ public class FareCalculatorService {
     }
 
     private float calculatePriceForStartExtendsStation(String source, String destination, ExtendMappingEntity sourceMapping, ExtendMappingEntity destinationMapping, float basePrice, ExtendPriceEntity extendPriceEntity) {
-        if (source.equals("N8") && destinationMapping.getExtendPriceEntity().getExtendName().equals("Sukhumvit2")) {
+        if ((source.equals(extendConfig.getStartStationA()) && destinationMapping.getExtendPriceEntity().getExtendName().equals(extendConfig.getNameStationA())) ||
+            (source.equals(extendConfig.getStartStationB()) && destinationMapping.getExtendPriceEntity().getExtendName().equals(extendConfig.getNameStationB()))) {
             return destinationMapping.getExtendPriceEntity().getExtendPrice();
         }
-        if (destination.equals("N8") && sourceMapping.getExtendPriceEntity().getExtendName().equals("Sukhumvit2")) {
-            return sourceMapping.getExtendPriceEntity().getExtendPrice();
-        }
-        if (source.equals("E9") && destinationMapping.getExtendPriceEntity().getExtendName().equals("Sukhumvit1")) {
-            return destinationMapping.getExtendPriceEntity().getExtendPrice();
-        }
-        if (destination.equals("E9") && sourceMapping.getExtendPriceEntity().getExtendName().equals("Sukhumvit1")) {
+        if ((destination.equals(extendConfig.getStartStationA()) && sourceMapping.getExtendPriceEntity().getExtendName().equals(extendConfig.getNameStationA())) ||
+            (destination.equals(extendConfig.getStartStationB()) && sourceMapping.getExtendPriceEntity().getExtendName().equals(extendConfig.getNameStationB()))) {
             return sourceMapping.getExtendPriceEntity().getExtendPrice();
         }
         return basePrice + extendPriceEntity.getExtendPrice();

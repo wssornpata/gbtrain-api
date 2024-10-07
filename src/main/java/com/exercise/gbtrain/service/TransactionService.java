@@ -17,6 +17,6 @@ public class TransactionService {
 
     @Transactional(readOnly = true)
     public List<TransactionEntity> getTransactions() {
-        return transactionRepository.findAllByOrderByIdAsc();
+        return transactionRepository.findAllByOrderByIdDesc();
     }
 }

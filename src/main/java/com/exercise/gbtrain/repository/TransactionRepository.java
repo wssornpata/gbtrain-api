@@ -10,6 +10,6 @@ import java.util.Optional;
 @Repository
 public interface TransactionRepository extends JpaRepository<TransactionEntity, Integer> {
 
-    List<TransactionEntity> findAllByOrderByIdAsc();
+    List<TransactionEntity> findAllByOrderByIdDesc();
 
 }
