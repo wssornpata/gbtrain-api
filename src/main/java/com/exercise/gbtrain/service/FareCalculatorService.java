@@ -66,22 +66,6 @@ public class FareCalculatorService {
     }
 
     public void validateFareCalculatorRequest(FareCalculatorRequest request) {
-        if (request == null) {
-            throw new InvalidEntityAndTypoException("Request cannot be null", "Invalid Request");
-        }
-
-        if (request.getSource() == null || request.getSource().isEmpty()) {
-            throw new InvalidEntityAndTypoException("Source cannot be null or empty", "Invalid Source");
-        }
-
-        if (request.getDestination() == null || request.getDestination().isEmpty()) {
-            throw new InvalidEntityAndTypoException("Destination cannot be null or empty", "Invalid Destination");
-        }
-
-        if (request.getType() == null || request.getType() < 0) {
-            throw new InvalidEntityAndTypoException("Type cannot be null or negative", "Invalid Type");
-        }
-
         if (!stationRepository.existsByStationName(request.getSource())) {
             throw new InvalidEntityAndTypoException("Source does not exist", "Invalid Source");
         }
@@ -107,7 +91,6 @@ public class FareCalculatorService {
 
     float calculatePrice(int distance, String source, String destination, int type, ExtendMappingEntity sourceMapping, ExtendMappingEntity destinationMapping) {
         FareRateEntity fareRateEntity = getFareRateEntity(distance);
-
         validateFareRateEntity(fareRateEntity);
 
         if (type == 2) {
@@ -118,7 +101,7 @@ public class FareCalculatorService {
 
     private void validateFareRateEntity(FareRateEntity fareRateEntity) {
         if (fareRateEntity == null) {
-            throw new InvalidEntityAndTypoException("Source does not exist", "Invalid Source");
+            throw new InvalidEntityAndTypoException("Farerate not found", "Invalid Farerate");
         }
     }
 
@@ -140,25 +123,42 @@ public class FareCalculatorService {
         if (isSourceExtend && isDestinationExtend) {
             return calculatePriceForBothExtends(basePrice, sourceMapping, destinationMapping);
         } else if (isSourceExtend) {
-            return calculatePriceForStartExtendsStation(source, destination, sourceMapping, null, basePrice, sourceMapping.getExtendPriceEntity());
+            return calculatePriceForSingleExtend(source, destination, sourceMapping, null, basePrice);
         } else if (isDestinationExtend) {
-            return calculatePriceForStartExtendsStation(source, destination, null, destinationMapping, basePrice, destinationMapping.getExtendPriceEntity());
+            return calculatePriceForSingleExtend(source, destination, null, destinationMapping, basePrice);
         }
         return basePrice;
     }
 
-    private float calculatePriceForStartExtendsStation(String source, String destination, ExtendMappingEntity sourceMapping, ExtendMappingEntity destinationMapping, float basePrice, ExtendPriceEntity extendPriceEntity) {
-        if ((source.equals(extendConfig.getStartStationA()) && destinationMapping.getExtendPriceEntity().getExtendName().equals(extendConfig.getNameStationA())) ||
-            (source.equals(extendConfig.getStartStationB()) && destinationMapping.getExtendPriceEntity().getExtendName().equals(extendConfig.getNameStationB()))) {
+    private float calculatePriceForSingleExtend(String source, String destination,
+                                                ExtendMappingEntity sourceMapping,
+                                                ExtendMappingEntity destinationMapping,
+                                                float basePrice) {
+        if (isMatchingExtend(source, destinationMapping, extendConfig.getStartStationA(), extendConfig.getNameStationA()) ||
+                isMatchingExtend(source, destinationMapping, extendConfig.getStartStationB(), extendConfig.getNameStationB())) {
             return destinationMapping.getExtendPriceEntity().getExtendPrice();
         }
-        if ((destination.equals(extendConfig.getStartStationA()) && sourceMapping.getExtendPriceEntity().getExtendName().equals(extendConfig.getNameStationA())) ||
-            (destination.equals(extendConfig.getStartStationB()) && sourceMapping.getExtendPriceEntity().getExtendName().equals(extendConfig.getNameStationB()))) {
+        if (isMatchingExtend(destination, sourceMapping, extendConfig.getStartStationA(), extendConfig.getNameStationA()) ||
+                isMatchingExtend(destination, sourceMapping, extendConfig.getStartStationB(), extendConfig.getNameStationB())) {
             return sourceMapping.getExtendPriceEntity().getExtendPrice();
         }
-        return basePrice + extendPriceEntity.getExtendPrice();
+        return basePrice + getExtendPrice(sourceMapping, destinationMapping);
     }
 
+    private boolean isMatchingExtend(String station, ExtendMappingEntity mapping, String startStation, String nameStation) {
+        return station.equals(startStation) && mapping != null &&
+                mapping.getExtendPriceEntity().getExtendName().equals(nameStation);
+    }
+
+    private float getExtendPrice(ExtendMappingEntity sourceMapping, ExtendMappingEntity destinationMapping) {
+        if (sourceMapping != null) {
+            return sourceMapping.getExtendPriceEntity().getExtendPrice();
+        }
+        if (destinationMapping != null) {
+            return destinationMapping.getExtendPriceEntity().getExtendPrice();
+        }
+        return 0;
+    }
     private float calculatePriceForBothExtends(float basePrice,
                                                ExtendMappingEntity sourceMapping,
                                                ExtendMappingEntity destinationMapping) {

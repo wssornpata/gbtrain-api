@@ -33,8 +33,6 @@ public class PriceAdjustorService {
 
     @Transactional
     public List<FareRateEntity> adjustPrice(List<PriceAdjustorRequest> priceAdjustorRequestList) {
-        validatePriceAdjustorRequestList(priceAdjustorRequestList);
-
         Map<Integer, PriceAdjustorRequest> requestMap = priceAdjustorRequestList.stream()
                 .collect(Collectors.toMap(PriceAdjustorRequest::getId, request -> request));
 
@@ -45,7 +43,6 @@ public class PriceAdjustorService {
         for (FareRateEntity fareRateEntity : fareRateEntities) {
             PriceAdjustorRequest priceAdjustorRequest = requestMap.get(fareRateEntity.getId());
             if (priceAdjustorRequest != null) {
-                validateAdjustRequest(priceAdjustorRequest);
 
                 fareRateEntity.setDescription(priceAdjustorRequest.getDescription());
                 fareRateEntity.setPrice(priceAdjustorRequest.getPrice());
@@ -53,33 +50,5 @@ public class PriceAdjustorService {
             }
         }
         return fareRateRepository.saveAll(fareRateEntities);
-    }
-
-    private void validatePriceAdjustorRequestList(List<PriceAdjustorRequest> priceAdjustorRequestList) {
-        if (priceAdjustorRequestList == null || priceAdjustorRequestList.isEmpty()) {
-            throw new InvalidEntityAndTypoException("Request list cannot be null or empty", "Invalid Request");
-        }
-    }
-
-    private void validateAdjustRequest(PriceAdjustorRequest request) {
-        if (request == null) {
-            throw new InvalidEntityAndTypoException("Request cannot be null", "Invalid Request");
-        }
-
-        if (request.getId() <= 0) {
-            throw new InvalidEntityAndTypoException("ID must be greater than 0", "Invalid ID");
-        }
-
-        if (request.getDescription() == null || request.getDescription().isEmpty() || request.getDescription().length() > 255) {
-            throw new InvalidEntityAndTypoException("Description cannot be null or empty", "Invalid Description");
-        }
-
-        if (request.getDistance() < 0) {
-            throw new InvalidEntityAndTypoException("Distance cannot be negative", "Invalid Distance");
-        }
-
-        if (request.getPrice() < 0) {
-            throw new InvalidEntityAndTypoException("Price cannot be negative", "Invalid Price");
-        }
     }
 }

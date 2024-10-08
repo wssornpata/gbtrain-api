@@ -69,10 +69,11 @@ public class GraphService {
 
     public int getDistance(String source, String destination, int type, ExtendMappingEntity sourceMapping, ExtendMappingEntity destinationMapping) {
         Map<String, List<String>> graph = mappings.stream().collect(Collectors.groupingBy(StationMappingEntity::getFrom, Collectors.mapping(StationMappingEntity::getTo, Collectors.toList())));
-        return getFinalDistance(findShortestPath(graph, source, destination), type, sourceMapping, destinationMapping);
+        int distance = calculateFinalDistance(findShortestPath(graph, source, destination), type, sourceMapping, destinationMapping);
+        return distance == 0 ? 1 : distance;
     }
 
-    private int getFinalDistance(FareCalculatorDistanceMap fareCalculatorDistanceMap, int type, ExtendMappingEntity sourceMapping, ExtendMappingEntity destinationMapping) {
+    private int calculateFinalDistance(FareCalculatorDistanceMap fareCalculatorDistanceMap, int type, ExtendMappingEntity sourceMapping, ExtendMappingEntity destinationMapping) {
         int currentDistance = fareCalculatorDistanceMap.getDistance();
 
         if (currentDistance == -1) {
@@ -99,10 +100,6 @@ public class GraphService {
                     return startExtendB;
                 }
             }
-        }
-
-        if (currentDistance == 0) {
-            return 1;
         }
 
         return currentDistance;
