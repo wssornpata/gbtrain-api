@@ -29,6 +29,12 @@ public class StationService {
         return wrapperStationListResponses(stationEntityList);
     }
 
+    @Transactional(readOnly = true)
+    public List<StationEntity> getStationEntityList() {
+        List<StationEntity> stationEntityList = stationRepository.findAllByOrderByIdAsc();
+        return stationEntityList;
+    }
+
     public List<StationListResponse> wrapperStationListResponses(List<StationEntity> stationEntities) {
         Map<String, List<StationEntity>> stationsByColor = stationEntities.stream()
                 .collect(Collectors.groupingBy(StationEntity::getTrainColor));

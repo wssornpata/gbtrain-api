@@ -2,6 +2,7 @@ package com.exercise.gbtrain.service;
 
 import com.exercise.gbtrain.dto.station.response.StationListResponse;
 import com.exercise.gbtrain.dto.type.response.TypeListResponse;
+import com.exercise.gbtrain.entity.StationEntity;
 import com.exercise.gbtrain.exception.GlobalRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,12 @@ public class DropDownService {
     public List<StationListResponse> getStationDropDown() {
         logger.info("DropdownService: getStationDropDown");
         return stationService.getStationList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<StationEntity> getStationEntityList() {
+        logger.info("DropdownService: getStationDropDown");
+        return stationService.getStationEntityList();
     }
 
     @Transactional(readOnly = true)

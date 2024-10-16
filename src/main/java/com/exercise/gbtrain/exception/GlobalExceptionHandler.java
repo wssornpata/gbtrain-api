@@ -45,26 +45,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-//    @ExceptionHandler(HandlerMethodValidationException.class)
     protected ResponseEntity<Object> handleHandlerMethodValidationException(
             HandlerMethodValidationException ex,
             HttpHeaders headers,
             HttpStatusCode status,
             WebRequest request) {
 
-        List<String> errorMessages = Arrays.stream(ex.getDetailMessageArguments())
-                .map(Object::toString)
-                .collect(Collectors.toList());
-
-        List<String> extractedMessages = errorMessages.stream()
-                .map(msg -> {
-                    int colonIndex = msg.indexOf(":");
-                    return colonIndex != -1 ? msg.substring(colonIndex + 1).trim() : msg;
-                })
-                .collect(Collectors.toList());
-
+        List<String> extractedMessages = extractMessage(ex.getDetailMessageArguments());
         String errorMessage = "Validation failed: " + String.join(", ", extractedMessages);
-
         logger.error(errorMessage);
 
         return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.BAD_REQUEST);
@@ -77,22 +65,25 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             HttpStatusCode status,
             WebRequest request) {
 
-        List<String> errorMessages = Arrays.stream(ex.getDetailMessageArguments())
+        List<String> extractedMessages = extractMessage(ex.getDetailMessageArguments());
+        String errorMessage = "Validation failed: " + String.join(", ", extractedMessages);
+        logger.error(errorMessage);
+
+        return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.BAD_REQUEST);
+    }
+
+    private List<String> extractMessage(Object[] message) {
+
+        List<String> errorMessages = Arrays.stream(message)
                 .map(Object::toString)
                 .collect(Collectors.toList());
 
-        List<String> extractedMessages = errorMessages.stream()
+        return errorMessages.stream()
                 .map(msg -> {
                     int colonIndex = msg.indexOf(":");
                     return colonIndex != -1 ? msg.substring(colonIndex + 1).trim() : msg;
                 })
                 .collect(Collectors.toList());
-
-        String errorMessage = "Validation failed: " + String.join(", ", extractedMessages);
-
-        logger.error(errorMessage);
-
-        return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.BAD_REQUEST);
     }
 
 }

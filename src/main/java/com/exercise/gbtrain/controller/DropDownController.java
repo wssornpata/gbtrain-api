@@ -22,7 +22,7 @@ public class DropDownController {
 
     @GetMapping("/station")
     public ResponseEntity<Object> stationDropDown() {
-        var response = dropDownService.getStationDropDown();
+        var response = dropDownService.getStationEntityList();
         return ResponseEntity.status(HttpStatus.OK).body(response);
 
     }@GetMapping("/type")
