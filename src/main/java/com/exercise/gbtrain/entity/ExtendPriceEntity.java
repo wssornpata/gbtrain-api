@@ -3,7 +3,6 @@ package com.exercise.gbtrain.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
-
 @Data
 @Entity
 @Table(name = "extendprice")

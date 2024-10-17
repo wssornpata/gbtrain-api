@@ -135,11 +135,11 @@ public class FareCalculatorService {
                                                 ExtendMappingEntity destinationMapping,
                                                 float basePrice) {
         if (isMatchingExtend(source, destinationMapping, extendConfig.getStartStationA(), extendConfig.getNameStationA()) ||
-                isMatchingExtend(source, destinationMapping, extendConfig.getStartStationB(), extendConfig.getNameStationB())) {
+            isMatchingExtend(source, destinationMapping, extendConfig.getStartStationB(), extendConfig.getNameStationB())) {
             return destinationMapping.getExtendPriceEntity().getExtendPrice();
         }
         if (isMatchingExtend(destination, sourceMapping, extendConfig.getStartStationA(), extendConfig.getNameStationA()) ||
-                isMatchingExtend(destination, sourceMapping, extendConfig.getStartStationB(), extendConfig.getNameStationB())) {
+            isMatchingExtend(destination, sourceMapping, extendConfig.getStartStationB(), extendConfig.getNameStationB())) {
             return sourceMapping.getExtendPriceEntity().getExtendPrice();
         }
         return basePrice + getExtendPrice(sourceMapping, destinationMapping);

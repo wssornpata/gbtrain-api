@@ -12,9 +12,9 @@ public class TypeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "type",unique = true, nullable = false)
+    @Column(name = "type", unique = true, nullable = false)
     private int type;
 
     @Column(name = "type_description", nullable = false, length = 255)
-    private String description ;
+    private String description;
 }

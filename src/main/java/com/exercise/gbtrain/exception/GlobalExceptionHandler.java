@@ -25,23 +25,26 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(GlobalRuntimeException.class)
     public ResponseEntity<Object> handleGlobalRuntimeException(GlobalRuntimeException ex) {
-        String errorMessage = "An error occurred: ".concat(ex.getMessage());
-        logger.error(errorMessage);
-        return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
+        String errorHeader = "An error occurred";
+        String errorMessage = ex.getMessage();
+        logger.error(wrapperErrorLogger(errorHeader, errorMessage));
+        return new ResponseEntity<Object>(new FailureResponse(errorHeader, errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(InvalidEntityAndTypoException.class)
     public ResponseEntity<Object> handleInvalidEntityAndTypoException(InvalidEntityAndTypoException ex) {
-        String errorMessage = "InvalidEntityAndTypoException : ".concat(ex.getMessage()).concat(" ").concat(ex.getDetailMessage());
-        logger.error(errorMessage);
-        return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.NOT_FOUND);
+        String errorHeader = "InvalidEntityAndTypoException";
+        String errorMessage = ex.getMessage().concat(" ").concat(ex.getDetailMessage());
+        logger.error(wrapperErrorLogger(errorHeader, errorMessage));
+        return new ResponseEntity<Object>(new FailureResponse(errorHeader, errorMessage), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(RouteNotFoundException.class)
     public ResponseEntity<Object> handleNoRouteFoundException(RouteNotFoundException ex) {
-        String errorMessage = "Route not found: " + ex.getMessage();
-        logger.error(errorMessage);
-        return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.NOT_FOUND);
+        String errorHeader = "Route not found";
+        String errorMessage = ex.getMessage();
+        logger.error(wrapperErrorLogger(errorHeader, errorMessage));
+        return new ResponseEntity<Object>(new FailureResponse(errorHeader, errorMessage), HttpStatus.NOT_FOUND);
     }
 
     @Override
@@ -52,10 +55,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             WebRequest request) {
 
         List<String> extractedMessages = extractMessage(ex.getDetailMessageArguments());
-        String errorMessage = "Validation failed: " + String.join(", ", extractedMessages);
-        logger.error(errorMessage);
+        String errorHeader = "Validation error";
+        String errorMessage = String.join(", ", extractedMessages);
+        logger.error(wrapperErrorLogger(errorHeader, errorMessage));
 
-        return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<Object>(new FailureResponse(errorHeader, errorMessage), HttpStatus.BAD_REQUEST);
     }
 
     @Override
@@ -66,10 +70,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             WebRequest request) {
 
         List<String> extractedMessages = extractMessage(ex.getDetailMessageArguments());
-        String errorMessage = "Validation failed: " + String.join(", ", extractedMessages);
-        logger.error(errorMessage);
+        String errorHeader = "Validation error";
+        String errorMessage = String.join(", ", extractedMessages);
+        logger.error(wrapperErrorLogger(errorHeader, errorMessage));
 
-        return new ResponseEntity<Object>(new FailureResponse(errorMessage), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<Object>(new FailureResponse(errorHeader, errorMessage), HttpStatus.BAD_REQUEST);
     }
 
     private List<String> extractMessage(Object[] message) {
@@ -84,6 +89,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                     return colonIndex != -1 ? msg.substring(colonIndex + 1).trim() : msg;
                 })
                 .collect(Collectors.toList());
+    }
+
+    private String wrapperErrorLogger(String errorHeader, String errorMessage) {
+        return errorHeader.concat(": ").concat(errorMessage);
     }
 
 }

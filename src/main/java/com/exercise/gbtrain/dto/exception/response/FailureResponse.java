@@ -6,5 +6,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class FailureResponse {
+    private String messageHeader;
     private String message;
 }

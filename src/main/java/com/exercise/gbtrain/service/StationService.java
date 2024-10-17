@@ -23,11 +23,11 @@ public class StationService {
         this.stationRepository = stationRepository;
     }
 
-    @Transactional(readOnly = true)
-    public List<StationListResponse> getStationList() {
-        List<StationEntity> stationEntityList = stationRepository.findAllByOrderByIdAsc();
-        return wrapperStationListResponses(stationEntityList);
-    }
+//    @Transactional(readOnly = true)
+//    public List<StationListResponse> getStationList() {
+//        List<StationEntity> stationEntityList = stationRepository.findAllByOrderByIdAsc();
+//        return wrapperStationListResponses(stationEntityList);
+//    }
 
     @Transactional(readOnly = true)
     public List<StationEntity> getStationEntityList() {
@@ -35,14 +35,17 @@ public class StationService {
         return stationEntityList;
     }
 
-    public List<StationListResponse> wrapperStationListResponses(List<StationEntity> stationEntities) {
-        Map<String, List<StationEntity>> stationsByColor = stationEntities.stream()
-                .collect(Collectors.groupingBy(StationEntity::getTrainColor));
-
-        return stationsByColor.entrySet().stream()
-                .map(entry -> new StationListResponse(entry.getKey(), entry.getValue()))
-                .collect(Collectors.toList());
-    }
+//    public List<StationListResponse> wrapperStationListResponses(List<StationEntity> stationEntities) {
+//
+//        Map<String, List<StationEntity>> stationsByColor = stationEntities.stream()
+//                .collect(Collectors.groupingBy(station -> station.getColorMappingEntity().getColorName()));
+//
+//        logger.info(stationsByColor.toString());
+//
+//        return stationsByColor.entrySet().stream()
+//                .map(entry -> new StationListResponse(entry.getKey(), entry.getValue()))
+//                .collect(Collectors.toList());
+//    }
 
 //    private List<StationListResponse> wrapperStationListResponses(List<StationEntity> stationEntityList) {
 //        return stationEntityList.stream().map(StationListResponse::formStationEntity).collect(Collectors.toList());

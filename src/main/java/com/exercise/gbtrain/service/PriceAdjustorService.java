@@ -2,7 +2,6 @@ package com.exercise.gbtrain.service;
 
 import com.exercise.gbtrain.dto.priceadjustor.request.PriceAdjustorRequest;
 import com.exercise.gbtrain.entity.FareRateEntity;
-import com.exercise.gbtrain.exception.InvalidEntityAndTypoException;
 import com.exercise.gbtrain.repository.FareRateRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
