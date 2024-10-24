@@ -7,14 +7,14 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class CalculatedFareResponse {
-    private String source;
+    private String origin;
     private String destination;
     private float price;
-    private int type;
+    private String type;
 
-    public static CalculatedFareResponse wrapperCalculatedFareResponse(FareCalculatorRequest request, float price, int type) {
+    public static CalculatedFareResponse wrapperCalculatedFareResponse(FareCalculatorRequest request, float price, String type) {
         return new CalculatedFareResponse(
-                request.getSource(),
+                request.getOrigin(),
                 request.getDestination(),
                 price,
                 type

@@ -7,9 +7,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -31,7 +33,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<Object>(new FailureResponse(errorHeader, errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(InvalidEntityAndTypoException.class)
+    @ExceptionHandler({InvalidEntityAndTypoException.class})
     public ResponseEntity<Object> handleInvalidEntityAndTypoException(InvalidEntityAndTypoException ex) {
         String errorHeader = "InvalidEntityAndTypoException";
         String errorMessage = ex.getMessage().concat(" ").concat(ex.getDetailMessage());
@@ -73,6 +75,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         String errorHeader = "Validation error";
         String errorMessage = String.join(", ", extractedMessages);
         logger.error(wrapperErrorLogger(errorHeader, errorMessage));
+
+        return new ResponseEntity<Object>(new FailureResponse(errorHeader, errorMessage), HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(
+        HttpMessageNotReadableException ex,
+        HttpHeaders headers,
+        HttpStatusCode status,
+        WebRequest request)
+    {
+            String errorHeader = "Typo error";
+            String errorMessage = ex.getMessage();
+            logger.error(wrapperErrorLogger(errorHeader, errorMessage));
 
         return new ResponseEntity<Object>(new FailureResponse(errorHeader, errorMessage), HttpStatus.BAD_REQUEST);
     }

@@ -50,4 +50,8 @@ public class PriceAdjustorService {
         }
         return fareRateRepository.saveAll(fareRateEntities);
     }
+
+    private void validateFareRateEntity(FareRateEntity fareRateEntity) {
+
+    }
 }

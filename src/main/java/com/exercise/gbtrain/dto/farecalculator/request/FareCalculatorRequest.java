@@ -7,9 +7,9 @@ import lombok.Data;
 @Data
 public class FareCalculatorRequest {
 
-    @NotNull(message = "Source must not be null.")
-    @Size(max = 5, message = "Source is invalid.")
-    private String source;
+    @NotNull(message = "Origin must not be null.")
+    @Size(max = 5, message = "Origin is invalid.")
+    private String origin;
 
     @NotNull(message = "Destination must not be null.")
     @Size(max = 5, message = "Source is invalid.")

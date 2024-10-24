@@ -16,8 +16,8 @@ public class TransactionEntity {
     @Column(name = "transaction_id")
     private int id;
 
-    @Column(name = "source", nullable = false, length = 5)
-    private String source;
+    @Column(name = "origin", nullable = false, length = 5)
+    private String origin;
 
     @Column(name = "destination", nullable = false, length = 5)
     private String destination;
@@ -34,7 +34,7 @@ public class TransactionEntity {
     public static TransactionEntity formTransactionEntity(FareCalculatorRequest fareCalculatorRequest, float price) {
         TransactionEntity entity = new TransactionEntity();
         LocalDateTime now = LocalDateTime.now();
-        entity.setSource(fareCalculatorRequest.getSource());
+        entity.setOrigin(fareCalculatorRequest.getOrigin());
         entity.setDestination(fareCalculatorRequest.getDestination());
         entity.setPrice(price);
         entity.setType(fareCalculatorRequest.getType());

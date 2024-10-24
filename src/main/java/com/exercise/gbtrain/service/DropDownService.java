@@ -1,9 +1,7 @@
 package com.exercise.gbtrain.service;
 
-import com.exercise.gbtrain.dto.station.response.StationListResponse;
 import com.exercise.gbtrain.dto.type.response.TypeListResponse;
 import com.exercise.gbtrain.entity.StationEntity;
-import com.exercise.gbtrain.exception.GlobalRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -23,9 +21,9 @@ public class DropDownService {
     }
 
     @Transactional(readOnly = true)
-    public List<StationListResponse> getStationDropDown() {
+    public List<StationEntity> getStationDropDown() {
         logger.info("DropdownService: getStationDropDown");
-        return stationService.getStationList();
+        return stationService.getStationEntityList();
     }
 
     @Transactional(readOnly = true)

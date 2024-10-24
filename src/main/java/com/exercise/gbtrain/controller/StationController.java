@@ -23,7 +23,7 @@ public class StationController {
 
     @GetMapping("/getstation")
     public ResponseEntity<Object> getAllStation() {
-        var response = stationService.getStationList();
+        var response = stationService.getStationEntityList();
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

@@ -13,21 +13,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/dropdown")
 public class DropDownController {
-    private final Logger logger = LoggerFactory.getLogger(DropDownController.class);
-    private final DropDownService dropDownService;
+	private final Logger logger = LoggerFactory.getLogger(DropDownController.class);
+	private final DropDownService dropDownService;
 
-    public DropDownController(DropDownService dropDownService) {
-        this.dropDownService = dropDownService;
-    }
+	public DropDownController(DropDownService dropDownService) {
+		this.dropDownService = dropDownService;
+	}
 
-    @GetMapping("/station")
-    public ResponseEntity<Object> stationDropDown() {
-        var response = dropDownService.getStationEntityList();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+	@GetMapping("/station")
+	public ResponseEntity<Object> stationDropDown() {
+		var response = dropDownService.getStationEntityList();
+		return ResponseEntity.status(HttpStatus.OK).body(response);
 
-    }@GetMapping("/type")
-    public ResponseEntity<Object> typeDropDown() {
-        var response = dropDownService.getTypeDropDown();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
+	}
+
+	@GetMapping("/type")
+	public ResponseEntity<Object> typeDropDown() {
+		var response = dropDownService.getTypeDropDown();
+		return ResponseEntity.status(HttpStatus.OK).body(response);
+	}
 }

@@ -48,6 +48,6 @@ public class StationService {
 //    }
 
 //    private List<StationListResponse> wrapperStationListResponses(List<StationEntity> stationEntityList) {
-//        return stationEntityList.stream().map(StationListResponse::formStationEntity).collect(Collectors.toList());
+//        return stationEntityList.stream().map(StationListResponse::getStations).collect(Collectors.toList());
 //    }
 }
