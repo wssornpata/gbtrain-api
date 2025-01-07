@@ -11,7 +11,6 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -36,7 +35,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({InvalidEntityAndTypoException.class})
     public ResponseEntity<Object> handleInvalidEntityAndTypoException(InvalidEntityAndTypoException ex) {
         String errorHeader = "InvalidEntityAndTypoException";
-        String errorMessage = ex.getMessage().concat(" ").concat(ex.getDetailMessage());
+        String errorMessage = ex.getDetailMessage();
         logger.error(wrapperErrorLogger(errorHeader, errorMessage));
         return new ResponseEntity<Object>(new FailureResponse(errorHeader, errorMessage), HttpStatus.NOT_FOUND);
     }

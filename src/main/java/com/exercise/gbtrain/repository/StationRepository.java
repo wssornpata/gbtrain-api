@@ -10,6 +10,6 @@ import java.util.List;
 public interface StationRepository extends JpaRepository<StationEntity, String> {
 
     boolean existsByStationName(String stationName);
-
+    StationEntity findByStationName(String stationName);
     List<StationEntity> findAllByOrderByIdAsc();
 }

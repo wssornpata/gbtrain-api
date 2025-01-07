@@ -4,10 +4,9 @@ import com.exercise.gbtrain.configuration.ExtendConfig;
 import com.exercise.gbtrain.dto.farecalculator.FareCalculatorDistanceMap;
 import com.exercise.gbtrain.entity.ExtendMappingEntity;
 import com.exercise.gbtrain.entity.StationMappingEntity;
+import com.exercise.gbtrain.exception.RouteNotFoundException;
 import com.exercise.gbtrain.repository.StationMappingRepository;
 import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class GraphService {
-    private final Logger logger = LoggerFactory.getLogger(GraphService.class);
 
     private final ExtendConfig extendConfig;
 
@@ -64,7 +62,7 @@ public class GraphService {
                 }
             }
         }
-        return new FareCalculatorDistanceMap(-1, new HashMap<>());
+        throw new RouteNotFoundException("No route found between origin and destination");
     }
 
     public int getDistance(String source, String destination, int type, ExtendMappingEntity sourceMapping, ExtendMappingEntity destinationMapping) {
@@ -77,7 +75,7 @@ public class GraphService {
         int currentDistance = fareCalculatorDistanceMap.getDistance();
 
         if (currentDistance == -1) {
-            return currentDistance;
+            throw new RouteNotFoundException("No route found between origin and destination");
         }
 
         if (type == 2) {

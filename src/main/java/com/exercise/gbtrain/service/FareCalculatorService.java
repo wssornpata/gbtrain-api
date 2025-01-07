@@ -5,17 +5,13 @@ import com.exercise.gbtrain.dto.farecalculator.request.FareCalculatorRequest;
 import com.exercise.gbtrain.dto.farecalculator.response.CalculatedFareResponse;
 import com.exercise.gbtrain.entity.*;
 import com.exercise.gbtrain.exception.InvalidEntityAndTypoException;
-import com.exercise.gbtrain.exception.RouteNotFoundException;
 import com.exercise.gbtrain.repository.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import static com.exercise.gbtrain.dto.farecalculator.response.CalculatedFareResponse.wrapperCalculatedFareResponse;
 
 @Service
 public class FareCalculatorService {
-    private static final Logger logger = LoggerFactory.getLogger(FareCalculatorService.class);
 
     private final ExtendConfig extendConfig;
 
@@ -53,38 +49,32 @@ public class FareCalculatorService {
         ExtendMappingEntity originMapping = extendMappingRepository.findByStationName(origin);
         ExtendMappingEntity destinationMapping = extendMappingRepository.findByStationName(destination);
         int distance = graphService.getDistance(origin, destination, type, originMapping, destinationMapping);
-
-        validateRouteExists(distance);
+//
+//        validateRouteExists(distance);
 
         float price = calculatePrice(distance, origin, destination, type, originMapping, destinationMapping);
 
+
         transactionRepository.save(createTransactionEntity(request, price));
+
+        StationEntity originStationEntity = stationRepository.findByStationName(origin);
+        StationEntity destinationStationEntity = stationRepository.findByStationName(destination);
         TypeEntity typeEntity = typeRepository.findByType(type);
-        return wrapperCalculatedFareResponse(request, price, typeEntity.getDescription());
+        return wrapperCalculatedFareResponse(originStationEntity, destinationStationEntity, price, typeEntity.getDescription());
     }
 
     public void validateFareCalculatorRequest(FareCalculatorRequest request) {
         if (!stationRepository.existsByStationName(request.getOrigin())) {
-            throw new InvalidEntityAndTypoException("Origin does not exist", "Invalid Origin");
+            throw new InvalidEntityAndTypoException( "Invalid Origin", "Origin does not exist");
         }
 
         if (!stationRepository.existsByStationName(request.getDestination())) {
-            throw new InvalidEntityAndTypoException("Destination does not exist", "Invalid Destination");
+            throw new InvalidEntityAndTypoException( "Invalid Destination", "Destination does not exist");
         }
 
         if (!typeRepository.existsByType(request.getType())) {
-            throw new InvalidEntityAndTypoException("Type does not exist", "Invalid Type");
+            throw new InvalidEntityAndTypoException("Invalid Type", "Type does not exist");
         }
-    }
-
-    public void validateRouteExists(int distance) {
-        if (!hasRoute(distance)) {
-            throw new RouteNotFoundException("No route found between origin and destination");
-        }
-    }
-
-    private boolean hasRoute(int distance) {
-        return distance != -1;
     }
 
     float calculatePrice(int distance, String origin, String destination, int type, ExtendMappingEntity originMapping, ExtendMappingEntity destinationMapping) {
